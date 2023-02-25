@@ -20,15 +20,18 @@ const isAdmin = (req, res, next) => {
   }
 };
 
-
 //TRAER TODOS LOS PRODUCTOS CON METODO GET
 cartsRoute.get("/", (req, res) => {
-    res.header('Content-Type', 'application/json; charset=UTF8')
-    cartData.getAll()
-        .then((cart) => res.json(cart))
-})
+  res.header("Content-Type", "application/json; charset=UTF8");
+  cartData.getAll().then((cart) => res.json(cart));
+});
 
-
+//TRAER UN CARRO POR ID
+cartsRoute.get("/:id/products", isAdmin, (req, res) => {
+  res.header("Content-Type", "application/json; charset=UTF8");
+  const id = req.params.id;
+  cartData.getById(id).then((products) => res.json(products));
+});
 
 //CREAR NUEVO CARRITO
 cartsRoute.post("/", isAdmin, (req, res) => {
@@ -36,40 +39,27 @@ cartsRoute.post("/", isAdmin, (req, res) => {
   cartData.saveCarrito().then((products) => res.json(products));
 });
 
-//TRAER UN CARRO POR ID
-cartsRoute.get("/:id", isAdmin, (req, res) => {
+//AGREGAR PRODUCTOS AL CARRITO POR ID
+cartsRoute.post("/:idCarro/products/:id", isAdmin, (req, res) => {
   res.header("Content-Type", "application/json; charset=UTF8");
-  const id = req.params.id;
-  cartData.getById(id).then((products) => res.json(products));
+  const idCarro = req.params.idCarro;
+  productsData.getById(req.params.id).then((product) => {
+    if (product == undefined) return res.status(404).send();
+
+    cartData.saveProductsCarrito(product, idCarro).then((r1) => {
+      cartData.getById(idCarro).then((product) => res.json(product));
+    });
+  });
 });
 
-//ELIMINAR CARRITO POR ID
+//ELIMINAR CARRITO POR ID Y DEVUELVE LOS CARRITOS RESTANTES
 cartsRoute.delete("/:id", isAdmin, (req, res) => {
   res.header("Content-Type", "application/json; charset=UTF8");
-  cartData
-    .deleteById(req.params.id)
-
-    .then((products) => res.json(products));
-});
-
-//GRABAR CARRITO POR ID
-cartsRoute.post("/:idCarro/:id", isAdmin, (req, res) => {
-  res.header("Content-Type", "application/json; charset=UTF8");
-  const idCarro = req.params.idCarro;
-  productsData.getById(req.params.id).then((products) =>
-  cartData.saveProductsCarrito(products, idCarro)
-  );
-});
-
-//TRAER PRODUCTOS DE UN CARRO POR ID
-cartsRoute.get("/:idCarro/", isAdmin, (req, res) => {
-  res.header("Content-Type", "application/json; charset=UTF8");
-  const idCarro = req.params.idCarro;
-  cartData.getAll(req.params.idCarro).then((products) => res.json(products));
+  cartData.deleteById(req.params.id).then((products) => res.json(products));
 });
 
 //Elimina un producto indicado de un carro indicado
-cartsRoute.delete("/:idCarro/:id", isAdmin, (req, res) => {
+cartsRoute.delete("/:idCarro/products/:id", isAdmin, (req, res) => {
   cartData
     .eliminarProdDeCarro(req.params.idCarro, req.params.id)
     .then((products) => res.json(products));

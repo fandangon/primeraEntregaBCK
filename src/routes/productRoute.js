@@ -37,14 +37,36 @@ productsRoute.get("/:idProduct", isAdmin, (req, res) => {
 //GUARDAR NUEVO PRODUCTO
 productsRoute.post("/", isAdmin, (req, res) => {
   res.header("Content-Type", "application/json; charset=UTF8");
-  productsData.save(req.body).then((products) => res.json(products));
+
+  const body = req.body;
+  
+  if (body.title == undefined
+    || body.thumbnail == undefined
+    || body.price == undefined
+    || (body.price != undefined
+      && body.price == '0')
+    || body.stock == undefined
+    || (body.stock != undefined
+      && body.stock == '0')
+    || body.status == undefined
+    || body.category == undefined)
+    return res.status(400).send();
+
+  productsData.save(req.body).then(() => {
+    productsData.getAll().then((products) => res.json(products));
+  });
 });
 
 //ACTUALIZAR PRODUCTO MEDIANTE ID
 productsRoute.put("/:id", isAdmin, (req, res) => {
-  productsData
-    .updateProduct(req.params.id, req.body)
-    .then((product) => res.json(product));
+  const id = req.params.id;
+  productsData.getById(id).then((product) => {
+    if (product == undefined) return res.status(404).send();
+
+    productsData.updateProduct(id, req.body).then((r1) => {
+      productsData.getById(id).then((product) => res.json(product));
+    });
+  });
 });
 
 //ELIMINAR PRODUCTO POR ID

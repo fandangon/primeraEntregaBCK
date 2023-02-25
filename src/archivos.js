@@ -18,7 +18,11 @@ module.exports = class contenedor {
 
   save = async (object) => {
     try {
-      const contenido = await fs.promises.readFile(this.productos, "utf-8");
+      let contenido=[];
+      if (fs.existsSync(this.productos)) {
+          contenido = await fs.promises.readFile(this.productos, "utf-8")
+      }
+
       const arrayEmpty = [];
       const random = Math.floor(Math.random() * (10000 - 1 + 1) + 1);
       if (contenido.length === 0) {
@@ -31,6 +35,8 @@ module.exports = class contenedor {
           timestamp: Date.now(),
           stock: object.stock,
           codigo: random,
+          status: object.status,
+          category: object.category,
           id: id,
         };
         arrayEmpty.push(newproduct);
@@ -50,6 +56,8 @@ module.exports = class contenedor {
           timestamp: Date.now(),
           stock: object.stock,
           codigo: random,
+          status: object.status,
+          category: object.category,
           id: id,
         };
         producto.push(newproduct);
@@ -123,12 +131,18 @@ module.exports = class contenedor {
         productos[findId].thumbnail = updates.thumbnail;
         productos[findId].description = updates.description;
         productos[findId].stock = updates.stock;
+        productos[findId].codigo = updates.codigo;        
+        productos[findId].status = updates.status;
+        productos[findId].category = updates.category;
         const newproduct = {
           title: productos[findId].title,
           price: productos[findId].price,
           thumbnail: productos[findId].thumbnail,
           description: productos[findId].description,
           stock: productos[findId].stock,
+          codigo: productos[findId].codigo,
+          status: productos[findId].status,
+          category: productos[findId].category
         };
         await fs.promises.writeFile(
           this.productos,
